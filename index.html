@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>gem 'dragonfly'</title>
+
+		<meta name="description" content="Processing things on the fly">
+		<meta name="author" content="Elliott Hilaire">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+
+<section data-background="screenshot.png">
+</section>
+
+<section data-markdown>
+<script type="text/template">
+# gem 'dragonfly'
+@elliotthilaire
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Why I chose to use it
+
+ - No up front processing
+ - Suitable for Sinatra and Rails 
+ - General enough to use for anything
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## How it works
+
+ - Datastore
+ - Processors, Generators, Analysers
+ - Rack server
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+### Example
+```
+
+image = Dragonfly.app.fetch('gallery/angry-centipede.jpg')
+
+ => <Dragonfly::Job ... >
+
+
+thumbnail = image.thumb('300x300').watermark
+
+ => <Dragonfly::Job ... >
+
+
+url = thumbnail.url
+
+ => "/media/W1siZiIsImZlYXR1cmVkL2FuZ3J5LWNlbnRpcGVkZS5qcGciXSxbInAiLCJ0aHVtYiI
+ sIjMwMHgzMDAiXSxbInAiLCJ3YXRlcm1hcmsiXV0"
+
+```
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+### Dragonfly::Job
+```
+<Dragonfly::Job app=:default, 
+steps=[fetch("gallery/angry-centipede.jpg"),
+  process(:thumb, "300x300")], process(:watermark), 
+content=<Dragonfly::Content temp_object=<Dragonfly::TempObject data="" >>,
+steps applied:0/3 >
+```
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Set up 
+```
+require 'dragonfly'
+
+Dragonfly.app.configure do
+  
+  # Set a secret used to add a SHA sum to the generated URLS.
+  secret 'I code in PHP when no one is looking.'
+ 
+  # Load plugins
+  plugin :imagemagick
+
+end
+
+use Dragonfly::Middleware
+run Sinatra::Application
+```
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+```	        			
+rails generate dragonfly
+```
+config/initializers/dragonfly.rb
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+### Models
+```
+class Photo
+
+  attr_accessor :image_uid  # 'gallery/angry-centipede.jpg'
+
+  extend Dragonfly::Model
+  dragonfly_accessor :image
+  ...
+end
+```
+
+``` 
+...
+<img src="<%= @photo.image.thumb('300x200#').url %>" />
+...
+```
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Custom processor
+
+```
+Dragonfly.app.configure do
+  
+  ...
+  
+  processor :upside_down do |content, *args|
+
+	  content.shell_update do |old_path, new_path|  
+	    "pdftk #{old_path} cat 1-endsouth output #{new_path}" 
+	  end
+
+  end
+
+  ...
+
+end
+```
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Version Change
+
+0.9.15 (2013-05-04)
+
+1.0.0 (2013-11-24)
+</script>
+</section>
+
+
+<section data-markdown>
+<script type="text/template">
+## Resources
+
+Documentation:
+[markevans.github.io/dragonfly](http://markevans.github.io/dragonfly)
+ 
+Blog post:
+[www.new-bamboo.co.uk/blog/2010/01/13/dragonfly/](https://www.new-bamboo.co.uk/blog/2010/01/13/dragonfly/)
+
+Wiki:
+[https://github.com/markevans/dragonfly/wiki/Dragonfly-add-ons](https://github.com/markevans/dragonfly/wiki/Dragonfly-add-ons)
+
+Google Group:
+[https://groups.google.com/forum/#!topic/dragonfly-users](https://groups.google.com/forum/#!topic/dragonfly-users)
+
+</script>
+</section>
+
+<section>
+<h1>THE END</h1>
+</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
